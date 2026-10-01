@@ -1,8 +1,13 @@
 # 数据与实验产物（体积大，用 make data / make train 重新生成）
-data/
-data_smoke/
-runs/
-runs_smoke/
+#
+# ★ 必须写成 `/data/` 这种**根锚定**形式。写成 `data/` 会匹配**任意层级**下叫 data 的目录，
+#   于是 `wm/data/`（源码包！）会被一起忽略掉 —— 本地测试全绿因为文件还在磁盘上，
+#   但推到 GitHub 后 CI 直接 `ModuleNotFoundError: No module named 'wm.data'`。
+#   本项目真实踩到过这个坑，且症状（本地全过、远端全挂）很有迷惑性。
+/data/
+/data_smoke/
+/runs/
+/runs_smoke/
 
 # Python
 __pycache__/
