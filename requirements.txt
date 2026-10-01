@@ -1,0 +1,6 @@
+# 运行环境：只用 numpy + torch（+ pytest 跑测试）。
+# 项目刻意不引入 mujoco / isaac / 渲染引擎 —— 场景与渲染器都是本仓库自带的纯 numpy 实现，
+# 这样在 CI 和无 GPU 的机器上都能完整复现（见 README「为什么不用现成仿真器」）。
+numpy>=1.20
+torch>=2.0
+pytest>=7.0

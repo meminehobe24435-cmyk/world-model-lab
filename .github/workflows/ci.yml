@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11"]
+
+    env:
+      # 输出里有中文，必须显式设 UTF-8，否则 Windows/部分 runner 上会 UnicodeEncodeError
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: 安装依赖（CPU 版 torch，减小下载体积）
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pytest
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: 单元测试
+        run: python -m pytest tests -q
+
+      - name: 渲染自检
+        run: python scripts/selfcheck_render.py
+
+      - name: 物理自检（脚本专家成功率）
+        run: python scripts/selfcheck_physics.py
+
+      - name: 端到端冒烟（小规模采集 -> 训练 -> 评测，确保全流程不断）
+        run: |
+          python scripts/collect_all.py --out data_smoke --horizon 12 --scale 0.06 --cf 6
+          python -m wm.train --data data_smoke --out runs_smoke --name smoke \
+            --epochs 1 --batch 4 --seq-len 4 --stride 4 --img 48
+          python -m wm.bench.run_benchmark --ckpt runs_smoke/smoke/ckpt.pt \
+            --data data_smoke --out runs_smoke/smoke --tag val \
+            --horizon 6 --episodes 2 --cf-pairs 4 --mpc-episodes 2 \
+            --mpc-samples 8 --mpc-horizon 2 --mpc-max-steps 4

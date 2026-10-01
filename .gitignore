@@ -1,0 +1,20 @@
+# 数据与实验产物（体积大，用 make data / make train 重新生成）
+data/
+data_smoke/
+runs/
+runs_smoke/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
