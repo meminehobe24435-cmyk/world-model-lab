@@ -44,10 +44,10 @@ jobs:
 
       - name: 端到端冒烟（小规模采集 -> 训练 -> 评测，确保全流程不断）
         run: |
-          python scripts/collect_all.py --out data_smoke --horizon 12 --scale 0.06 --cf 6
+          python scripts/collect_all.py --out data_smoke --horizon 12 --scale 0.2 --cf 32
           python -m wm.train --data data_smoke --out runs_smoke --name smoke \
             --epochs 1 --batch 4 --seq-len 4 --stride 4 --img 48
           python -m wm.bench.run_benchmark --ckpt runs_smoke/smoke/ckpt.pt \
             --data data_smoke --out runs_smoke/smoke --tag val \
-            --horizon 6 --episodes 2 --cf-pairs 4 --mpc-episodes 2 \
+            --horizon 6 --episodes 3 --cf-pairs 8 --mpc-episodes 2 \
             --mpc-samples 8 --mpc-horizon 2 --mpc-max-steps 4

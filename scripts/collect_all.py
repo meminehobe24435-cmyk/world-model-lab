@@ -26,6 +26,11 @@ def gen_split(world, out, tag, seed0, n_expert, n_random, n_perturb, hard=False,
     for i in range(n_perturb):
         eps.append(collect_episode(world, seed0 + 9000 + i, "expert", horizon=H,
                                    perturb_sigma=0.45, perturb_period=4))
+    if not eps:
+        # 小规模冒烟时数量可能被 scale 取整到 0 —— 必须优雅跳过而不是崩，
+        # 否则 CI 的端到端冒烟会因为"空数组不能 stack"而假红。
+        print("[%s] 跳过（0 回合）" % tag, flush=True)
+        return {"tag": tag, "episodes": 0, "steps": 0, "shards": []}
     files = save_dataset(eps, out, tag)
     succ = {p: int(sum(e.meta["success"] for e in eps if e.meta["policy"] == p))
             for p in ("expert", "random")}
@@ -58,6 +63,9 @@ def gen_counterfactual(world, out, n=160, branch_step=8, suffix=10, seed0=40000)
         for k in CF_KEYS:
             acc[k].append(getattr(p, k))
     path = Path(out) / "counterfactual.npz"
+    if not acc["action_a"]:
+        print("[counterfactual] 跳过（0 对，跳过 %d）" % skipped, flush=True)
+        return {"pairs": 0, "skipped": skipped, "file": None}
     np.savez_compressed(path, **{k: np.stack(v) for k, v in acc.items()})
     print("[counterfactual] %d 对（跳过 %d）-> %s" % (len(acc["action_a"]), skipped, path),
           flush=True)
